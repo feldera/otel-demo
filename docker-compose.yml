@@ -14,6 +14,40 @@ networks:
     driver: bridge
 
 services:
+  feldera:
+    tty: true
+    build:
+      context: /Users/abhizer/feldera/feldera.git/main/
+      dockerfile: deploy/Dockerfile
+    ports:
+      - "28080:8080"
+      - "28081:8081"
+    stop_grace_period: 0s
+    environment:
+      - RUST_LOG=info,actix_web=error,tokio_postgres=info
+      - RUST_BACKTRACE=1
+      - AUTH_CLIENT_ID
+      - AUTH_ISSUER
+    security_opt:
+      # The default seccomp profile disables the `io_uring_*` syscalls that we need.
+      # Ideally, we would minimally relax the default profile, which is usually in
+      # /usr/share/container/seccomp.json, but we often start via `curl` of just this
+      # `docker-compose.yml`, so there's no way to grab the specific file at the
+      # same time, so instead we just use `seccomp:unconfined`.
+      #
+      #- seccomp:seccomp.json
+      - seccomp:unconfined
+    healthcheck:
+      # TODO: add `/status` endpoint
+      test:
+        [
+          "CMD-SHELL",
+          "curl --fail --request GET --url http://localhost:8080/healthz"
+        ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
   # ******************
   # Core Demo Services
   # ******************

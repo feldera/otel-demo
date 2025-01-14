@@ -8,11 +8,38 @@
 ## Note: the spanmetrics exporter must be included in the exporters array
 ## if overriding the traces pipeline.
 ##
-#  exporters:
-#    otlphttp/example:
-#      endpoint: <your-endpoint-url>
-#
-#  service:
-#    pipelines:
-#      traces:
-#        exporters: [spanmetrics, otlphttp/example]
+
+exporters:
+
+  # Send traces to the Feldera pipeline.
+  # Currently only uncompressed JSON is supported.
+  otlphttp/feldera_traces:
+     endpoint: http://feldera:8080/v0/pipelines/otel/ingress
+     traces_endpoint: http://feldera:8080/v0/pipelines/otel/ingress/otel_traces?format=json&update_format=raw
+     encoding: json
+     compression: none
+
+  otlphttp/feldera_logs:
+     endpoint: http://feldera:8080/v0/pipelines/otel/ingress
+     logs_endpoint: http://feldera:8080/v0/pipelines/otel/ingress/otel_logs?format=json&update_format=raw
+     encoding: json
+     compression: none
+
+  otlphttp/feldera_metrics:
+     endpoint: http://feldera:8080/v0/pipelines/otel/ingress
+     metrics_endpoint: http://feldera:8080/v0/pipelines/otel/ingress/otel_metrics?format=json&update_format=raw
+     encoding: json
+     compression: none
+
+service:
+   pipelines:
+     traces:
+       exporters: [spanmetrics, otlphttp/feldera_traces]
+
+     logs:
+       receivers: [otlp]
+       exporters: [otlphttp/feldera_logs]
+
+     metrics:
+       receivers: [hostmetrics, docker_stats, httpcheck/frontendproxy, otlp, prometheus, redis, spanmetrics]
+       exporters: [otlphttp/feldera_metrics]
