@@ -4,9 +4,10 @@
 from feldera import FelderaClient, PipelineBuilder
 
 sql = open("otel.sql").read()
+udf = open("udf.rs").read()
 
 client = FelderaClient('http://localhost:28080')
 
 print('Starting pipeline')
-pipeline = PipelineBuilder(client, 'otel', sql).create_or_replace()
+pipeline = PipelineBuilder(client, 'otel', sql, udf_rust=udf).create_or_replace()
 pipeline.start()

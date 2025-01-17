@@ -17,7 +17,7 @@ services:
   feldera:
     tty: true
     build:
-      context: /Users/abhizer/feldera/feldera.git/main/
+      context: /mnt/hdd0/Development/feldera.git/main
       dockerfile: deploy/Dockerfile
     ports:
       - "28080:8080"
@@ -689,7 +689,7 @@ services:
     deploy:
       resources:
         limits:
-          memory: 620M
+          memory: 1G
     restart: unless-stopped
     environment:
       - KAFKA_ADVERTISED_LISTENERS=PLAINTEXT://kafka:9092
