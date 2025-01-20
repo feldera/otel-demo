@@ -197,17 +197,17 @@ FROM
 -- Calculate the p95 latency in milliseconds over a tumbling window of 30 seconds
 CREATE MATERIALIZED VIEW p95_latency AS
 SELECT
-elapsedTimeMillis as latencyMs,
+p95(array_agg(elapsedTimeMillis)) as latencyMs,
 TUMBLE_START(
     eventTime,
-    INTERVAL '30' SECONDS
-) as tumble_start_time
+    INTERVAL '1' MINUTE
+) as 'time'
 FROM spans
 GROUP BY
 TUMBLE(
     eventTime,
-    INTERVAL '30' SECONDS
-), elapsedTimeMillis;
+    INTERVAL '1' MINUTE
+);
 
 -- Calculate the number of requests over a tumbling window of 1 minute
 CREATE MATERIALIZED VIEW requests AS
@@ -216,7 +216,7 @@ COUNT(*) as count,
 TUMBLE_START(
     eventTime,
     INTERVAL '1' MINUTE
-) as tumble_start_time
+) as 'time'
 FROM spans
 WHERE spans.parentSpanId = ''
 GROUP BY
@@ -233,7 +233,7 @@ COUNT(*) as throughput,
 TUMBLE_START(
     eventTime,
     INTERVAL '1' MINUTE
-) as tumble_start_time
+) as 'time'
 FROM spans
 WHERE spans.parentSpanId = ''
 GROUP BY
