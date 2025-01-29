@@ -16,9 +16,7 @@ networks:
 services:
   feldera:
     tty: true
-    build:
-      context: /Users/abhizer/feldera/feldera.git/main/
-      dockerfile: deploy/Dockerfile
+    image: ghcr.io/feldera/pipeline-manager:${FELDERA_VERSION:-latest}
     ports:
       - "28080:8080"
       - "28081:8081"
