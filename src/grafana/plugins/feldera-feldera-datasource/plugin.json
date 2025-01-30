@@ -1,0 +1,50 @@
+{
+    "$schema": "https://raw.githubusercontent.com/grafana/grafana/main/docs/sources/developers/plugins/plugin.schema.json",
+    "type": "datasource",
+    "name": "Feldera",
+    "id": "feldera-feldera-datasource",
+    "metrics": true,
+    "backend": true,
+    "executable": "gpx_feldera",
+    "info": {
+        "description": "A grafana data source plugin for Feldera.",
+        "author": {
+            "name": "Feldera"
+        },
+        "keywords": [
+            "feldera",
+            "datasource"
+        ],
+        "logos": {
+            "small": "img/logo.svg",
+            "large": "img/logo.svg"
+        },
+        "links": [
+            {
+                "name": "Website",
+                "url": "https://feldera.com"
+            },
+            {
+                "name": "Github",
+                "url": "https://github.com/feldera/grafana-datasource"
+            }
+        ],
+        "screenshots": [
+            {
+                "name": "query_editor",
+                "path": "img/query_editor.png"
+            },
+            {
+                "name": "config_editor",
+                "path": "img/config_editor.png"
+            }
+        ],
+        "version": "0.0.1-alpha",
+        "updated": "2025-01-27"
+    },
+    "dependencies": {
+        "grafanaDependency": ">=10.4.0",
+        "plugins": []
+    },
+    "buildMode": "production"
+}

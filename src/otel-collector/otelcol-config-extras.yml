@@ -1,5 +1,4 @@
-# Copyright The OpenTelemetry Authors
-# SPDX-License-Identifier: Apache-2.0
+# Copyright The OpenTelemetry Authors SPDX-License-Identifier: Apache-2.0
 
 # extra settings to be merged into OpenTelemetry Collector configuration
 # do not delete this file
@@ -9,34 +8,38 @@
 ## if overriding the traces pipeline.
 ##
 
-exporters:
-
-  # Send traces to the Feldera pipeline.
-  # Currently only uncompressed JSON is supported.
-  otlphttp/feldera_traces:
-     traces_endpoint: http://feldera:8080/v0/pipelines/otel/ingress/otel_traces?format=json&update_format=raw
-     encoding: json
-     compression: none
-
-  otlphttp/feldera_logs:
-     logs_endpoint: http://feldera:8080/v0/pipelines/otel/ingress/otel_logs?format=json&update_format=raw
-     encoding: json
-     compression: none
-
-  otlphttp/feldera_metrics:
-     metrics_endpoint: http://feldera:8080/v0/pipelines/otel/ingress/otel_metrics?format=json&update_format=raw
-     encoding: json
-     compression: none
-
-service:
-   pipelines:
-     traces:
-       exporters: [spanmetrics, otlphttp/feldera_traces]
-
-     logs:
-       receivers: [otlp]
-       exporters: [otlphttp/feldera_logs]
-
-     metrics:
-       receivers: [hostmetrics, docker_stats, httpcheck/frontend-proxy, otlp, prometheus, redis, spanmetrics]
-       exporters: [otlphttp/feldera_metrics]
+# exporters:
+#
+#   # Send traces to the Feldera pipeline.
+#   # Currently only uncompressed JSON is supported.
+#   otlphttp/feldera_traces:
+#      traces_endpoint: http://feldera:8080/v0/pipelines/otel/ingress/otel_traces?format=json&update_format=raw
+#      encoding: json
+#      compression: none
+#
+#   otlphttp/feldera_logs:
+#      logs_endpoint: http://feldera:8080/v0/pipelines/otel/ingress/otel_logs?format=json&update_format=raw
+#      encoding: json
+#      compression: none
+#
+#   otlphttp/feldera_metrics:
+#      metrics_endpoint: http://feldera:8080/v0/pipelines/otel/ingress/otel_metrics?format=json&update_format=raw
+#      encoding: json
+#      compression: none
+#
+# service:
+#    pipelines:
+#      traces:
+#        receivers: [otlp]
+#        processors: [transform, batch]
+#        exporters: [spanmetrics, otlphttp/feldera_traces, debug, otlp]
+#
+#      logs:
+#        receivers: [otlp]
+#        processors: [batch]
+#        exporters: [otlphttp/feldera_logs, debug]
+#
+#      metrics:
+#        receivers: [hostmetrics, docker_stats, httpcheck/frontend-proxy, otlp, prometheus, redis, spanmetrics]
+#        processors: [batch]
+#        exporters: [otlphttp/feldera_metrics, debug]
