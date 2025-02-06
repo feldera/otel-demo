@@ -4,7 +4,7 @@ CREATE TYPE KeyValue AS (
 );
 
 CREATE TYPE Event AS (
-    timeUnixNano VARCHAR,
+    timeUnixNano CHAR(20),
     name VARCHAR,
     attributes KeyValue ARRAY
 );
@@ -17,8 +17,8 @@ CREATE TYPE Span AS (
     flags BIGINT,
     name VARCHAR,
     kind INT,
-    startTimeUnixNano VARCHAR,
-    endTimeUnixNano VARCHAR,
+    startTimeUnixNano CHAR(20),
+    endTimeUnixNano CHAR(20),
     attributes KeyValue ARRAY,
     events Event ARRAY
 );
@@ -27,14 +27,18 @@ CREATE TYPE Metric AS (
     name VARCHAR,
     description VARCHAR,
     unit VARCHAR,
-    data VARIANT,
+    sum VARIANT,
+    gauge VARIANT,
+    summary VARIANT,
+    histogram VARIANT,
+    exponentialHistogram VARIANT,
     metadata KeyValue ARRAY
 );
 
 CREATE TYPE LogRecords AS (
     attributes KeyValue ARRAY,
-    timeUnixNano VARCHAR,
-    observedTimeUnixNano VARCHAR,
+    timeUnixNano CHAR(20),
+    observedTimeUnixNano CHAR(20),
     severityNumber INT,
     severityText VARCHAR,
     flags INT4,
@@ -113,39 +117,59 @@ FROM otel_logs, UNNEST(resourceLogs) as t (resource, scopeLogs);
 
 -- (ScopeMetrics[N]) -> (ScopeMetrics) x N
 CREATE LOCAL VIEW metrics_array AS
-SELECT metrics From rsMetrics, UNNEST(rsMetrics.scopeMetrics) as t(_, metrics);
+SELECT
+    resource,
+    scope,
+    metrics
+FROM rsMetrics, UNNEST(rsMetrics.scopeMetrics) as t(scope, metrics);
 
 -- (ScopeLogs[N]) -> (ScopeLogs) x N
 CREATE LOCAL VIEW logs_array AS
-SELECT logs FROM rsLogs, UNNEST(rsLogs.scopeLogs) as t(_, logs);
+SELECT 
+    resource,
+    scope,
+    logs 
+FROM rsLogs, UNNEST(rsLogs.scopeLogs) as t(scope, logs);
 
 -- (ScopeSpans[N]) -> (ScopeSpans) x N
 CREATE LOCAL VIEW spans_array AS
-SELECT spans FROM rsSpans, UNNEST(rsSpans.scopeSpans) as t(_, spans); 
+SELECT 
+    resource,
+    scope,
+    spans
+FROM rsSpans, UNNEST(rsSpans.scopeSpans) as t(scope, spans); 
 
 -- (Metrics[N]) -> (_, Metric) x N
 CREATE MATERIALIZED VIEW metrics AS
 SELECT
-	name,
-	description,
-	unit,
-	data,
-	metadata
+    name,
+    description,
+    unit,
+    sum,
+    summary,
+    gauge,
+    histogram,
+    exponentialHistogram,
+    resource,
+    scope,
+    metadata
 FROM metrics_array, UNNEST(metrics_array.metrics);
 
 -- (Logs[N]) -> (_, Logs) x N
 CREATE MATERIALIZED VIEW logs AS
 SELECT
-	attributes,
-	timeUnixNano,
-	observedTimeUnixNano,
-	severityNumber,
-	severityText,
-	flags,
-	traceId,
-	spanId,
-	eventName,
-	body
+    resource,
+    scope,
+    attributes,
+    timeUnixNano,
+    observedTimeUnixNano,
+    severityNumber,
+    severityText,
+    flags,
+    traceId,
+    spanId,
+    eventName,
+    body
 FROM logs_array, UNNEST(logs_array.logs);
 
 -- Convert nanoseconds to seconds
@@ -163,27 +187,29 @@ TIMESTAMPADD(SECOND, NANOS_TO_SECONDS(NANOS), DATE '1970-01-01');
 -- (Spans[N]) -> (Span, elapsedTimeMillis, eventTime) x N
 CREATE MATERIALIZED VIEW spans AS
 SELECT
-	traceId,
-	spanId,
-	tracestate,
-	parentSpanId,
-	flags,
-	name,
-	kind,
-	startTimeUnixNano,
-	endTimeUnixNano,
-	attributes,
-	events,
-	NANOS_TO_MILLIS(endTimeUnixNano::BIGINT - startTimeUnixNano::BIGINT) as elapsedTimeMillis,
-MAKE_TIMESTAMP_FROM_NANOS(startTimeUnixNano) as eventTime
+    resource,
+    scope,
+    traceId,
+    spanId,
+    tracestate,
+    parentSpanId,
+    flags,
+    name,
+    kind,
+    startTimeUnixNano,
+    endTimeUnixNano,
+    attributes,
+    events,
+    NANOS_TO_MILLIS(endTimeUnixNano::BIGINT - startTimeUnixNano::BIGINT) as elapsedTimeMillis,
+    MAKE_TIMESTAMP_FROM_NANOS(startTimeUnixNano) as eventTime
 FROM spans_array, UNNEST(spans_array.spans);
 
 CREATE LOCAL VIEW spans_tumble_10s AS
 SELECT * FROM TABLE(
 	TUMBLE(
-	TABLE spans,
-	DESCRIPTOR(eventTime),
-	INTERVAL '10' SECOND
+	    TABLE spans,
+	    DESCRIPTOR(eventTime),
+	    INTERVAL '10' SECOND
 	)
 );
 
