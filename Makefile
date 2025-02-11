@@ -2,7 +2,7 @@
 # SPDX-License-Identifier: Apache-2.0
 
 
-SHELL := /bin/bash
+SHELL := /usr/bin/env bash
 
 # All documents to be used in spell check.
 ALL_DOCS := $(shell find . -type f -name '*.md' -not -path './.github/*' -not -path '*/node_modules/*' -not -path '*/_build/*' -not -path '*/deps/*' -not -path */Pods/* -not -path */.expo/* | sort)
@@ -168,9 +168,9 @@ check-clean-work-tree:
 start:
 	$(DOCKER_COMPOSE_CMD) $(DOCKER_COMPOSE_ENV) up --force-recreate --remove-orphans --detach
 	# Install Feldera Python SDK.
-	uv pip install feldera
+	python3 -m pip install feldera
 	# Python script to start the Feldera pipeline.
-	python start_feldera_pipeline.py
+	python3 start_feldera_pipeline.py
 	@echo ""
 	@echo "OpenTelemetry Feldera Demo is running."
 	@echo "Go to http://localhost:28080 for the Feldera UI."

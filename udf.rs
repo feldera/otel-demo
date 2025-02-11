@@ -1,5 +1,7 @@
-pub fn p95(x: Vec<Option<i64>>) -> Result<Option<i64>, Box<dyn std::error::Error>> {
-	let mut x: Vec<i64> = x.into_iter().filter_map(|x| x).collect();
+use crate::*;
+
+pub fn p95(x: Array<Option<i64>>) -> Result<Option<i64>, Box<dyn std::error::Error>> {
+	let mut x: Vec<i64> = to_vec(x).into_iter().filter_map(|x| x).collect();
 	  
 	if x.is_empty() {
 		return Ok(None);
